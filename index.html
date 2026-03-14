@@ -132,6 +132,11 @@ button{font-family:inherit;cursor:pointer;border:none}
 <div class="sac">
 <button class="bex" onclick="startExam()">&#127919; Simulazione (60 dom.)</button>
 <button class="bnv" style="width:100%;margin-top:6px;font-size:11px;padding:8px" onclick="resetAll()">&#128260; Reset tutte le risposte</button>
+<div style="display:flex;gap:4px;margin-top:6px">
+<button class="bnv" style="flex:1;font-size:11px;padding:8px" onclick="exportData()">&#128229; Esporta</button>
+<button class="bnv" style="flex:1;font-size:11px;padding:8px" onclick="document.getElementById('impFile').click()">&#128228; Importa</button>
+<input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(this)">
+</div>
 </div>
 </aside>
 <div class="main">
@@ -368,6 +373,43 @@ else if(e.key===' '){e.preventDefault();toggleRev()}
 else if(e.key==='f'){var q=S.fq[S.ci];if(q){if(S.fl.has(q.id))S.fl.delete(q.id);else S.fl.add(q.id);sv();rq()}}
 else if('abcd'.indexOf(e.key.toLowerCase())>=0){var q=S.fq[S.ci];if(q&&!S.an[q.id]){S.an[q.id]=e.key.toUpperCase();sv();rq()}}
 });
+
+function exportData(){
+var d={fl:[...S.fl],sn:[...S.sn],an:S.an,ts:new Date().toISOString()};
+var blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+var a=document.createElement('a');
+a.href=URL.createObjectURL(blob);
+a.download='prince2_progressi_'+new Date().toISOString().slice(0,10)+'.json';
+a.click();
+URL.revokeObjectURL(a.href);
+}
+
+function importData(input){
+if(!input.files||!input.files[0])return;
+var reader=new FileReader();
+reader.onload=function(e){
+try{
+var d=JSON.parse(e.target.result);
+if(!d.an){alert('File non valido.');return}
+var mode=confirm('Vuoi UNIRE i dati importati con quelli attuali?\n\nOK = Unisci (mantiene entrambi)\nAnnulla = Sostituisci tutto');
+if(mode){
+// Merge
+if(d.fl)d.fl.forEach(function(x){S.fl.add(x)});
+if(d.sn)d.sn.forEach(function(x){S.sn.add(x)});
+if(d.an)for(var k in d.an){if(!S.an[k])S.an[k]=d.an[k]}
+}else{
+// Replace
+S.fl=new Set(d.fl||[]);
+S.sn=new Set(d.sn||[]);
+S.an=d.an||{};
+}
+sv();bs();fq();rq();up();
+alert('Importazione completata!\nSegnalate: '+S.fl.size+'\nViste: '+S.sn.size+'\nRisposte: '+Object.keys(S.an).length);
+}catch(err){alert('Errore nel file: '+err.message)}
+};
+reader.readAsText(input.files[0]);
+input.value='';
+}
 
 bs();fq();rq();
 
