@@ -390,7 +390,7 @@ document.getElementById('syncBox').style.display='block';
 function copySync(){
 var inp=document.getElementById('syncUrl');
 inp.select();
-navigator.clipboard.writeText(inp.value).then(function(){alert('Link copiato! Incollalo su WhatsApp o dove vuoi e aprilo dall\\'altro dispositivo.')}).catch(function(){
+navigator.clipboard.writeText(inp.value).then(function(){alert("Link copiato! Incollalo su WhatsApp o dove vuoi e aprilo dall'altro dispositivo.")}).catch(function(){
 inp.select();document.execCommand('copy');alert('Link copiato!');
 });
 }
@@ -402,7 +402,7 @@ var compressed=hash.substring(6);
 var json=decodeURIComponent(atob(compressed));
 var d=JSON.parse(json);
 if(!d.an)return false;
-var mode=confirm('Dati ricevuti da un altro dispositivo.\\n\\nOK = Unisci con i dati attuali\\nAnnulla = Sostituisci tutto');
+var mode=confirm('Dati ricevuti da un altro dispositivo.\n\nOK = Unisci con i dati attuali\nAnnulla = Sostituisci tutto');
 if(mode){
 if(d.fl)d.fl.forEach(function(x){S.fl.add(x)});
 if(d.sn)d.sn.forEach(function(x){S.sn.add(x)});
@@ -412,7 +412,7 @@ S.fl=new Set(d.fl||[]);S.sn=new Set(d.sn||[]);S.an=d.an||{};
 }
 sv();
 history.replaceState(null,'',location.pathname);
-alert('Sincronizzazione completata!\\nSegnalate: '+S.fl.size+'\\nViste: '+S.sn.size+'\\nRisposte: '+Object.keys(S.an).length);
+alert('Sincronizzazione completata!\nSegnalate: '+S.fl.size+'\nViste: '+S.sn.size+'\nRisposte: '+Object.keys(S.an).length);
 return true;
 }catch(e){return false}
 }
