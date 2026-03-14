@@ -132,9 +132,14 @@ button{font-family:inherit;cursor:pointer;border:none}
 <div class="sac">
 <button class="bex" onclick="startExam()">&#127919; Simulazione (60 dom.)</button>
 <button class="bnv" style="width:100%;margin-top:6px;font-size:11px;padding:8px" onclick="resetAll()">&#128260; Reset tutte le risposte</button>
-<div style="display:flex;gap:4px;margin-top:6px">
-<button class="bnv" style="flex:1;font-size:11px;padding:8px" onclick="exportData()">&#128229; Esporta</button>
-<button class="bnv" style="flex:1;font-size:11px;padding:8px" onclick="document.getElementById('impFile').click()">&#128228; Importa</button>
+<button class="bnv" style="width:100%;margin-top:6px;font-size:11px;padding:8px" onclick="syncExport()">&#128279; Genera link sincronizzazione</button>
+<div id="syncBox" style="display:none;margin-top:6px">
+<input type="text" id="syncUrl" class="sinp" readonly style="font-size:10px;margin-bottom:4px">
+<button class="bnv" style="width:100%;font-size:11px;padding:6px" onclick="copySync()">&#128203; Copia link</button>
+</div>
+<div style="display:flex;gap:4px;margin-top:4px">
+<button class="bnv" style="flex:1;font-size:10px;padding:6px" onclick="exportData()">&#128229; Esporta file</button>
+<button class="bnv" style="flex:1;font-size:10px;padding:6px" onclick="document.getElementById('impFile').click()">&#128228; Importa file</button>
 <input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(this)">
 </div>
 </div>
@@ -374,6 +379,43 @@ else if(e.key==='f'){var q=S.fq[S.ci];if(q){if(S.fl.has(q.id))S.fl.delete(q.id);
 else if('abcd'.indexOf(e.key.toLowerCase())>=0){var q=S.fq[S.ci];if(q&&!S.an[q.id]){S.an[q.id]=e.key.toUpperCase();sv();rq()}}
 });
 
+function syncExport(){
+var d={fl:[...S.fl],sn:[...S.sn],an:S.an};
+var json=JSON.stringify(d);
+var compressed=btoa(encodeURIComponent(json));
+var url=location.origin+location.pathname+'#sync='+compressed;
+document.getElementById('syncUrl').value=url;
+document.getElementById('syncBox').style.display='block';
+}
+function copySync(){
+var inp=document.getElementById('syncUrl');
+inp.select();
+navigator.clipboard.writeText(inp.value).then(function(){alert('Link copiato! Incollalo su WhatsApp o dove vuoi e aprilo dall\\'altro dispositivo.')}).catch(function(){
+inp.select();document.execCommand('copy');alert('Link copiato!');
+});
+}
+function syncImport(){
+var hash=location.hash;
+if(hash.indexOf('#sync=')!==0)return false;
+try{
+var compressed=hash.substring(6);
+var json=decodeURIComponent(atob(compressed));
+var d=JSON.parse(json);
+if(!d.an)return false;
+var mode=confirm('Dati ricevuti da un altro dispositivo.\\n\\nOK = Unisci con i dati attuali\\nAnnulla = Sostituisci tutto');
+if(mode){
+if(d.fl)d.fl.forEach(function(x){S.fl.add(x)});
+if(d.sn)d.sn.forEach(function(x){S.sn.add(x)});
+if(d.an)for(var k in d.an){if(!S.an[k])S.an[k]=d.an[k]}
+}else{
+S.fl=new Set(d.fl||[]);S.sn=new Set(d.sn||[]);S.an=d.an||{};
+}
+sv();
+history.replaceState(null,'',location.pathname);
+alert('Sincronizzazione completata!\\nSegnalate: '+S.fl.size+'\\nViste: '+S.sn.size+'\\nRisposte: '+Object.keys(S.an).length);
+return true;
+}catch(e){return false}
+}
 function exportData(){
 var d={fl:[...S.fl],sn:[...S.sn],an:S.an,ts:new Date().toISOString()};
 var blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
@@ -411,6 +453,7 @@ reader.readAsText(input.files[0]);
 input.value='';
 }
 
+syncImport();
 bs();fq();rq();
 
 </script>
